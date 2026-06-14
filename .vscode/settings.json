@@ -1,0 +1,13 @@
+{
+	"files.associations": {
+		"fdf.h": "c",
+		"types.h": "c",
+		"libft.h": "c",
+		"get_next_line.h": "c",
+		"limits": "c",
+		"*.tcc": "c",
+		"cmath": "c",
+		"unistd.h": "c"
+  },
+  "ros.distro": "noetic"
+}

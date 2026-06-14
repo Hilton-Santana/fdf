@@ -1,0 +1,111 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 1 
+  },
+  "configurePresets": 
+  [
+   {
+      "name": "default",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build",
+      "description": "Default configuration for win and linux",
+      "cacheVariables": {
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+      }
+   },
+   {
+      "name": "Config-MSVC-Base",
+      "hidden": true,
+      "inherits": "default",
+      "cacheVariables": {
+        "CMAKE_C_COMPILER": "cl.exe",
+        "CMAKE_CXX_COMPILER": "cl.exe"
+      },
+      "architecture": {
+        "value": "x64",
+        "strategy": "external"
+      },
+      "toolset": {
+        "value": "v143,host=x64",
+        "strategy": "external"
+      }
+   },
+   {
+    "name": "Config-GNU-GCC-Base",
+    "hidden": true,
+    "generator": "Ninja",
+    "cacheVariables": {
+      "CMAKE_C_COMPILER": "/usr/bin/gcc",
+      "CMAKE_CXX_COMPILER": "/usr/bin/g++"
+    }
+   },
+   {
+      "name": "Debug-MSVC",
+      "inherits": "Config-MSVC-Base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+   },
+   {
+      "name": "Release-MSVC",
+      "inherits": "Config-MSVC-Base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "Debug-GCC",
+      "description": "Debug build with GNU GCC",
+      "inherits": [
+        "default",
+        "Config-GNU-GCC-Base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      },
+      "environment": {
+        "BUILDTYPE": "Debug"
+      }
+    },
+    {
+      "name": "Release-GCC",
+      "description": "Release build with GNU GCC",
+      "inherits": [
+        "default",
+        "Config-GNU-GCC-Base"
+      ],
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      },
+      "environment": {
+        "BUILDTYPE": "Release"
+      }
+    }
+ ],
+  "buildPresets": [
+    {
+      "name": "Build-MSVC-Debug",
+      "configurePreset": "Debug-MSVC",
+      "configuration": "Debug"
+    },
+    {
+      "name": "Build-MSVC-Release",
+      "configurePreset": "Release-MSVC",
+      "configuration": "Release"
+    },
+    {
+      "name": "Build-GCC-Debug",
+      "configurePreset": "Debug-GCC",
+      "configuration": "Debug"
+    },
+    {
+      "name": "Build-GCC-Release",
+      "configurePreset": "Release-GCC",
+      "configuration": "Release"
+    }
+  ]
+}
