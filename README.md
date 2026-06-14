@@ -16,5 +16,6 @@ cmake --build build
 
 # Usage
 ```
-build/fdf ../tests_maps/42.fdf
+./build/fdf test_maps/42.fdf
 ```
+
