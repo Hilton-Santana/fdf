@@ -6,96 +6,111 @@
 /*   By: hsouza-s <hsouza-s@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/05 12:45:55 by hsouza-s          #+#    #+#             */
-/*   Updated: 2024/07/17 14:35:01 by hsouza-s         ###   ########.fr       */
+/*   Updated: 2026/06/14 00:00:00 by hsouza-s         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "fdf.h"
 
-int	on_mouse_up(int press_code, int x, int y, t_canvas *canvas_handle)
+static void	cleanup(t_canvas *canvas)
 {
-	int	x_rel;
-	int	y_rel;
-
-	x_rel = canvas_handle->m_pos_down.m_x - x;
-	y_rel = canvas_handle->m_pos_down.m_y - y;
-	if (press_code == 1)
-	{
-		if (abs(x_rel) > abs(y_rel))
-			rotate_y(x_rel / 10, &canvas_handle->m_cam);
-		else
-			rotate_x(y_rel / 10, &canvas_handle->m_cam);
-	}
-	else if (press_code == 3)
-		translate(x_rel / 15, y_rel / 15, &canvas_handle->m_cam);
-	render(canvas_handle);
-	return (1);
+	if (canvas->m_img.img_ptr)
+		mlx_delete_image(canvas->mlx, canvas->m_img.img_ptr);
+	if (canvas->mlx)
+		mlx_terminate(canvas->mlx);
+	free_map(canvas);
 }
 
-int	on_mouse_down(int press_code, int x, int y, t_canvas *canvas_handle)
+void	on_scroll(double xdelta, double ydelta, void *param)
 {
-	canvas_handle->m_pos_down.m_x = x;
-	canvas_handle->m_pos_down.m_y = y;
-	if (press_code == 4)
-	{
-		zoom(0.5, &canvas_handle->m_cam);
-		render(canvas_handle);
-	}
-	else if (press_code == 5)
-	{
-		zoom(-0.5, &canvas_handle->m_cam);
-		render(canvas_handle);
-	}
-	return (1);
+	t_canvas	*canvas;
+
+	(void)xdelta;
+	canvas = (t_canvas *)param;
+	if (ydelta > 0)
+		zoom(0.5, &canvas->m_cam);
+	else if (ydelta < 0)
+		zoom(-0.5, &canvas->m_cam);
+	render(canvas);
 }
 
-int	on_destroy(t_canvas *canvas_handle)
+void	on_mouse(mouse_key_t button, action_t action, modifier_key_t mods,
+	void *param)
 {
-	mlx_destroy_window(canvas_handle->mlx, canvas_handle->win);
-	free(canvas_handle->mlx);
-	free_map(canvas_handle);
-	exit(EXIT_FAILURE);
-	return (1);
+	t_canvas	*canvas;
+	int32_t		x;
+	int32_t		y;
+	int			x_rel;
+	int			y_rel;
+
+	(void)mods;
+	canvas = (t_canvas *)param;
+	mlx_get_mouse_pos(canvas->mlx, &x, &y);
+	if (action == MLX_PRESS)
+	{
+		canvas->m_pos_down.m_x = x;
+		canvas->m_pos_down.m_y = y;
+	}
+	else if (action == MLX_RELEASE)
+	{
+		x_rel = canvas->m_pos_down.m_x - x;
+		y_rel = canvas->m_pos_down.m_y - y;
+		if (button == MLX_MOUSE_BUTTON_LEFT)
+		{
+			if (abs(x_rel) > abs(y_rel))
+				rotate_y(x_rel / 10, &canvas->m_cam);
+			else
+				rotate_x(y_rel / 10, &canvas->m_cam);
+		}
+		else if (button == MLX_MOUSE_BUTTON_RIGHT)
+			translate(x_rel / 15, y_rel / 15, &canvas->m_cam);
+		render(canvas);
+	}
 }
 
-int	on_key_press(int key, t_canvas *canvas_handle)
+void	on_key(mlx_key_data_t keydata, void *param)
 {
-	float	radius;
+	t_canvas	*canvas;
+	float		radius;
 
-	radius = 1.5 * fmax(canvas_handle->m_map.m_rows,
-			canvas_handle->m_map.m_cols) + 5;
-	if (key == KEY_R)
+	canvas = (t_canvas *)param;
+	if (keydata.action != MLX_PRESS)
+		return ;
+	radius = 1.5 * fmax(canvas->m_map.m_rows, canvas->m_map.m_cols) + 5;
+	if (keydata.key == MLX_KEY_R)
 	{
-		init_cam(&canvas_handle->m_cam, radius);
-		render(canvas_handle);
+		init_cam(&canvas->m_cam, radius);
+		render(canvas);
 	}
-	else if (key == ESCAPE)
-		on_destroy(canvas_handle);
-	return (1);
+	else if (keydata.key == MLX_KEY_ESCAPE)
+		mlx_close_window(canvas->mlx);
 }
 
 int	main(int argc, char **argv)
 {
 	t_canvas	canvas_handle;
 
+	ft_bzero(&canvas_handle, sizeof(t_canvas));
 	if (argc == 2)
 		read_args(argv[1], &canvas_handle.m_map);
 	else
 		msg_error("The argument should be only a regular grid\n");
-	canvas_handle.mlx = mlx_init();
-	canvas_handle.win = mlx_new_window(canvas_handle.mlx,
-			WINDOW_WIDTH, WINDOW_HEIGHT, "first windown");
+	canvas_handle.mlx = mlx_init(WINDOW_WIDTH, WINDOW_HEIGHT, "fdf", false);
+	if (!canvas_handle.mlx)
+		msg_error("MLX42 initialization failed\n");
+	canvas_handle.m_img.img_ptr = mlx_new_image(canvas_handle.mlx,
+			WINDOW_WIDTH, WINDOW_HEIGHT);
+	if (!canvas_handle.m_img.img_ptr
+		|| mlx_image_to_window(canvas_handle.mlx,
+			canvas_handle.m_img.img_ptr, 0, 0) < 0)
+		msg_error("MLX42 image initialization failed\n");
 	init_cam(&canvas_handle.m_cam, 1.5
 		* fmax(canvas_handle.m_map.m_rows, canvas_handle.m_map.m_cols) + 5);
 	render(&canvas_handle);
-	mlx_hook(canvas_handle.win, BUTTONPRESS,
-		BUTTONPRESSMASK, &on_mouse_down, &canvas_handle);
-	mlx_hook(canvas_handle.win, BUTTONSRELEASE,
-		BUTTONRELEASEMASK, &on_mouse_up, &canvas_handle);
-	mlx_hook(canvas_handle.win, DESTROYNOTIFY, 0, &on_destroy, &canvas_handle);
-	mlx_hook(canvas_handle.win, KEYPRESS,
-		KEYPRESSMASK, &on_key_press, &canvas_handle);
+	mlx_mouse_hook(canvas_handle.mlx, &on_mouse, &canvas_handle);
+	mlx_scroll_hook(canvas_handle.mlx, &on_scroll, &canvas_handle);
+	mlx_key_hook(canvas_handle.mlx, &on_key, &canvas_handle);
 	mlx_loop(canvas_handle.mlx);
-	free(canvas_handle.mlx);
-	return (1);
+	cleanup(&canvas_handle);
+	return (0);
 }

@@ -6,18 +6,22 @@
 /*   By: hsouza-s <hsouza-s@student.42.rio>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/19 16:47:14 by hsouza-s          #+#    #+#             */
-/*   Updated: 2023/05/27 18:50:12 by hsouza-s         ###   ########.fr       */
+/*   Updated: 2026/06/14 00:00:00 by hsouza-s         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "fdf.h"
 
+static uint32_t	mlx_color(int color)
+{
+	return (((uint32_t)color << 8) | 0xFF);
+}
+
 void	img_pixel_put(t_img *img, int x, int y, int color)
 {
-	char	*pixel;
-
-	pixel = img->m_data + (y * img->line_len + x * (img->bpp / 8));
-	*(int *) pixel = color;
+	if (x < 0 || y < 0 || x >= WINDOW_WIDTH || y >= WINDOW_HEIGHT)
+		return ;
+	mlx_put_pixel(img->img_ptr, x, y, mlx_color(color));
 }
 
 void	bresenham_line_xy(t_pixel A, t_pixel B, t_canvas *screen_handle, int dx)
@@ -27,6 +31,8 @@ void	bresenham_line_xy(t_pixel A, t_pixel B, t_canvas *screen_handle, int dx)
 	int		error;
 	int		inclination;
 
+	if (dx == 0)
+		return ;
 	inclination = abs(B.m_y - A.m_y) * 2;
 	error = 0;
 	x = A.m_x;
@@ -55,6 +61,8 @@ void	bresenham_line_yx(t_pixel A, t_pixel B, t_canvas *screen_handle, int dx)
 	int		error;
 	int		inclination;
 
+	if (dx == 0)
+		return ;
 	inclination = abs(B.m_y - A.m_y) * 2;
 	error = 0;
 	x = A.m_x;
@@ -94,7 +102,9 @@ void	draw_line(t_pixel A, t_pixel B, t_canvas *canvas)
 		swap_int(&A.m_y, &B.m_y);
 	}
 	dx = B.m_x - A.m_x;
-	if (is_yx)
+	if (dx == 0)
+		img_pixel_put(&canvas->m_img, A.m_x, A.m_y, A.m_color);
+	else if (is_yx)
 		bresenham_line_yx(A, B, canvas, dx);
 	else
 		bresenham_line_xy(A, B, canvas, dx);

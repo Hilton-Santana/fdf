@@ -79,15 +79,10 @@ void	transform(t_canvas	*cv_handle)
 
 void	render(t_canvas *canvas)
 {
-	canvas->m_img.img_ptr = mlx_new_image
-		(canvas->mlx, WINDOW_WIDTH, WINDOW_HEIGHT);
-	canvas->m_img.m_data = mlx_get_data_addr(canvas->m_img.img_ptr,
-			&canvas->m_img.bpp, &canvas->m_img.line_len, &canvas->m_img.endian);
+	ft_bzero(canvas->m_img.img_ptr->pixels,
+		canvas->m_img.img_ptr->width * canvas->m_img.img_ptr->height
+		* sizeof(int32_t));
 	transform(canvas);
 	raster(canvas);
-	mlx_clear_window(canvas->mlx, canvas->win);
-	mlx_put_image_to_window(canvas->mlx, canvas->win,
-		canvas->m_img.img_ptr, 0, 0);
-	mlx_destroy_image(canvas->mlx, canvas->m_img.img_ptr);
 	free_frame_buffer(canvas);
 }

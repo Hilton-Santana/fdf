@@ -6,7 +6,7 @@
 /*   By: hsouza-s <hsouza-s@student.42.rio>         +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/04 22:53:13 by hsouza-s          #+#    #+#             */
-/*   Updated: 2026/06/14 16:26:27 by hsouza-s         ###   ########.fr       */
+/*   Updated: 2026/06/14 16:48:53 by hsouza-s         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,23 +26,9 @@
 # define PURPLE 0xb19cd9
 # define MAX_HEIGHT 3
 # define INVALID_PIX -1 
-# define KEY_R 114 // 15 on MAC
-# define ESCAPE 53
-# define BUTTONPRESS 4
-# define BUTTONPRESSMASK 4
-# define BUTTONRELEASEMASK 8
-# define BUTTONSRELEASE 5
-# define DESTROYNOTIFY 17
-# define KEYPRESS 2
-# define KEYPRESSMASK 1
-
 typedef struct s_img
 {
-	void	*img_ptr;
-	char	*m_data;
-	int		bpp;
-	int		line_len;
-	int		endian;
+	mlx_image_t	*img_ptr;
 }	t_img;
 
 typedef struct s_vector4
@@ -84,8 +70,7 @@ typedef struct s_camera
 
 typedef struct s_fdf
 {
-	void		*mlx;
-	void		*win;
+	mlx_t		*mlx;
 	t_cam		m_cam;
 	t_pixel		**m_frame_bf;
 	t_map		m_map;
@@ -94,9 +79,10 @@ typedef struct s_fdf
 }	t_canvas;
 
 int		main(int argc, char **argv);
-int		on_mouse_down(int press_code,
-			int x, int y, t_canvas *canvas_handle);
-int		on_mouse_up(int press_code, int x, int y, t_canvas *canvas_handle);
+void	on_mouse(mouse_key_t button, action_t action, modifier_key_t mods,
+			void *param);
+void	on_scroll(double xdelta, double ydelta, void *param);
+void	on_key(mlx_key_data_t keydata, void *param);
 void	line_of_sight(float az, float el, float radius, float m_eye[3]);
 void	init_cam(t_cam *cam, float radius);
 void	init_cam_basis(t_cam *cam);
